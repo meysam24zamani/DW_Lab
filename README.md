@@ -1,2 +1,2 @@
 # DW_Lab
- Data warehousing solutions for different problem, presented in DW course. (UPC University).
+ Data warehousing solutions for the aircraft manufacturer information, presented in DW course (UPC University).
