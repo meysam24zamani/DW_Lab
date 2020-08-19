@@ -1,0 +1,5 @@
+http://quarry.essi.upc.edu:8080/pentaho/Login
+
+user: team11D
+
+password: C3WrSxxB

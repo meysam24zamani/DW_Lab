@@ -1,0 +1,140 @@
+//EXERCISE 1
+CREATE VIEW nomVista AS
+SELECT p.UsuariId, p.LlibreId, p.TempsId, p.dies
+FROM Prestecs p
+//A:RollUp(Prestecs, Usuaris.sexe, Sum)
+CREATE VIEW nomVista AS
+SELECT u.sexe, p.LlibreId, p.TempsId, SUM(p.dies) as dies
+FROM Prestecs p, Usuaris u
+WHERE p.UsuariId = u.Id
+GROUP BY u.sexe, p.LlibreId, p.TempsId
+//B:RollUp(A, Temps.mes, Sum)
+CREATE VIEW nomVista AS
+SELECT u.sexe, p.LlibreId, t.mes, SUM(p.dies) as dies
+FROM Prestecs p, Usuaris u, Temps t
+WHERE p.UsuariId = u.Id AND p.TempsId = t.Id
+GROUP BY u.sexe, p.LlibreId, t.mes
+//C:Selleccio(B, Temps.mes='Gener')
+CREATE VIEW nomVista AS
+SELECT u.sexe, p.LlibreId, t.mes, SUM(p.dies) as dies
+FROM Prestecs p, Usuaris u, Temps t
+WHERE p.UsuariId = u.Id AND p.TempsId = t.Id and t.mes='Gener'
+GROUP BY u.sexe, p.LlibreId, t.mes
+
+//EXERCISE 2
+CREATE VIEW nomVista AS
+SELECT c.ProveidorId, c.LlibreId, c.TempsId, c.preu, c.numUnitats
+FROM Compres c
+//A:Rollup(Compres, Proveidors.All, Sum)
+CREATE VIEW nomVista AS
+SELECT 'All' as ProveidorId, c.LlibreId, c.TempsId, SUM(c.preu) as preu, SUM(c.numUnitats) as numUnitats
+FROM Compres c
+GROUP BY c.LlibreId, c.TempsId
+//B:Rollup(A, Llibres.All, Sum)
+CREATE VIEW nomVista AS
+SELECT 'All' as ProveidorId, 'All' as LlibreId, c.TempsId, SUM(c.preu) as preu, SUM(c.numUnitats) as numUnitats
+FROM Compres c
+GROUP BY c.TempsId
+//C:Rollup(B, Temps.All, Sum)
+CREATE VIEW nomVista AS
+SELECT 'All' as ProveidorId, 'All' as LlibreId, 'All' as TempsId, SUM(c.preu) as preu, SUM(c.numUnitats) as numUnitats
+FROM Compres c
+//D:CanviBase(C,Proveidors)
+CREATE VIEW nomVista AS
+SELECT 'All' as ProveidorId, SUM(c.preu) as preu, SUM(c.numUnitats) as numUnitats
+FROM Compres c
+//R:Projeccio(D, numUnitats)
+CREATE VIEW nomVista AS
+SELECT 'All' as ProveidorId, SUM(c.numUnitats) as numUnitats
+FROM Compres c
+
+//EXERCISE 3
+CREATE VIEW nomVista AS
+SELECT p.UsuariId, p.LlibreId, p.TempsId, p.dies
+FROM Prestecs p
+//A:RollUp(Prestecs, Usuaris.All, Sum)
+CREATE VIEW nomVista AS
+SELECT 'All' as UsuariId, p.LlibreId, p.TempsId, SUM(p.dies) as dies
+FROM Prestecs p
+GROUP BY p.LlibreId, p.TempsId
+//B:RollUp(A, Llibres.anyo, Sum)
+CREATE VIEW nomVista AS
+SELECT 'All' as UsuariId, l.anyo, p.TempsId, SUM(p.dies) as dies
+FROM Prestecs p, Llibres l
+WHERE p.LlibreId = l.Id
+GROUP BY l.anyo, p.TempsId
+//C:CanviBase(B, Llibres x Temps)
+CREATE VIEW nomVista AS
+SELECT l.anyo, p.TempsId, SUM(p.dies) as dies
+FROM Prestecs p, Llibres l
+WHERE p.LlibreId = l.Id
+GROUP BY l.anyo, p.TempsId
+//D:DrillAcross(C, Compres)
+CREATE VIEW nomVista AS
+SELECT l.anyo, p.TempsId, SUM(p.dies) as dies, SUM(c.preu) as preu, SUM(c.numUnitats) as numUnitats
+FROM Prestecs p, Llibres l, Compres c
+WHERE p.LlibreId = l.Id AND c.LlibreId = l.Id and p.TempsId = c.TempsId
+GROUP BY l.anyo, p.TempsId
+//R:Projeccio(D, preu)
+CREATE VIEW nomVista AS
+SELECT l.anyo, p.TempsId, SUM(c.preu) as preu
+FROM Prestecs p, Llibres l, Compres c
+WHERE p.LlibreId = l.Id AND c.LlibreId = l.Id and p.TempsId = c.TempsId
+GROUP BY l.anyo, p.TempsId
+
+//EXERCISE 4
+CREATE VIEW nomVista AS
+SELECT c.ProveidorId, c.LlibreId, c.TempsId, c.preu, c.numUnitats
+FROM Compres c
+//A:RollUp(Compres, Proveidors.All, Sum)
+CREATE VIEW nomVista AS
+SELECT 'All' as Proveidors, c.LlibreId, c.TempsId, SUM(c.preu) as preu, SUM(c.numUnitats) as numUnitats
+FROM Compres c
+GROUP BY c.LlibreId, c.TempsId
+//B:CanviBase(A, Llibres x Temps)
+CREATE VIEW nomVista AS
+SELECT c.LlibreId, c.TempsId, SUM(c.preu) as preu, SUM(c.numUnitats) as numUnitats
+FROM Compres c
+GROUP BY c.LlibreId, c.TempsId
+//C:DrillAcross(B, Prestecs, Sum)
+CREATE VIEW nomVista AS
+SELECT c.LlibreId, c.TempsId, SUM(c.preu) as preu, SUM(c.numUnitats) as numUnitats, SUM(p.dies) as dies
+FROM Compres c, Prestecs p
+WHERE c.LlibreId = p.LlibreId AND c.TempsId = p.TempsId
+GROUP BY c.LlibreId, c.TempsId
+//D:Projeccio(C, dies)
+CREATE VIEW nomVista AS
+SELECT c.LlibreId, c.TempsId,  SUM(p.dies) as dies
+FROM Compres c, Prestecs p
+WHERE c.LlibreId = p.LlibreId AND c.TempsId = p.TempsId
+GROUP BY c.LlibreId, c.TempsId
+//R:CanviBase(D, Llibres x Temps x Usuaris)
+CREATE VIEW nomVista AS
+SELECT c.LlibreId, c.TempsId, 'All' as UsuariId, SUM(p.dies) as dies
+FROM Compres c, Prestecs p
+WHERE c.LlibreId = p.LlibreId AND c.TempsId = p.TempsId
+GROUP BY c.LlibreId, c.TempsId
+
+//EXERCISE 5
+CREATE VIEW nomVista AS
+SELECT p.UsuariId, p.LlibreId, p.TempsId, p.dies
+FROM Prestecs p
+//A:RollUp(Prestecs, Temps.mes, Sum)
+CREATE VIEW nomVista AS
+SELECT p.UsuariId, p.LlibreId, t.mes, SUM(p.dies) as dies
+FROM Prestecs p, Temps t
+WHERE p.TempsId=t.TempsId
+GROUP BY p.UsuariId, p.LlibreId, t.mes
+//B:Seleccio(A, Temps.mes='Gener')
+CREATE VIEW nomVista AS
+SELECT p.UsuariId, p.LlibreId, t.mes, SUM(p.dies) as dies
+FROM Prestecs p, Temps t
+WHERE p.TempsId=t.TempsId AND t.mes = 'Gener'
+GROUP BY p.UsuariId, p.LlibreId, t.mes
+//R:DrillDown(B, TempsId)
+CREATE VIEW nomVista AS
+SELECT p.UsuariId, p.LlibreId, p.TempsId,  p.dies
+FROM Prestecs p
+GROUP BY p.UsuariId, p.LlibreId, p.TempsId
+
+//EXERCISE 6 ??
